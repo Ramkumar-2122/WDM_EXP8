@@ -1,5 +1,5 @@
 ### EX8 Web Scraping On E-commerce platform using BeautifulSoup
-### DATE: 
+### DATE: 30.10.2025
 ### AIM: To perform Web Scraping on Amazon using (beautifulsoup) Python.
 ### Description: 
 <div align = "justify">
@@ -28,52 +28,95 @@ One can search, navigate, and modify data using a parser. It’s versatile and s
 ```PYTHON
 import requests
 from bs4 import BeautifulSoup
-import re
-import matplotlib.pyplot as plt
 
-def convert_price_to_float(price):
-    # Remove currency symbols and commas, and then convert to float
-    price = re.sub(r'[^\d.]', '', price)  # Remove non-digit characters except '.'
-    return float(price) if price else 0.0
 
-def get_amazon_products(search_query):
-    base_url = 'https://www.amazon.in'
-    headers = {
-        'User-Agent': 'Your User Agent'  # Add your User Agent here
-    }
+def get_snapdeal_products(search_query):
+  url = f"https://www.snapdeal.com/search?keyword={search_query.replace(' ', '%20')}"
+  headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/126.0.0.0 Safari/537.36",
 
-    search_query = search_query.replace(' ', '+')
-    url = f'{base_url}/s?k={search_query}'
+}
+  response = requests.get(url, headers=headers)
+  print("Status Code:", response.status_code)
+  print("Final URL:", response.url)
 
-    response = requests.get(url, headers=headers)
-    products_data = []  # List to store product information
+  products_data = []
+  if response.status_code == 200:
+    soup = BeautifulSoup(response.text, "html.parser")
+    products = soup.find_all("div", {"class": "product-tuple-listing"})
 
-    if response.status_code == 200:
-        /* TYPE YOUR CODE HERE
+    for product in products:
+      title = product.find("p", {"class": "product-title"}).text.strip()
+      price = product.find("span", {"class": "product-price"}).text.strip()
+      reviews_element = product.find("span", {"class": "product-rating-count"})
+      no_of_reviews = reviews_element.text.strip() if reviews_element else "N/A"
+      discount = product.find("div", {"class": "product-discount"}).text.strip()
+      rating = product.find("div", {"class": "filled-stars"})
+      product_rating = rating['style'].split(';')[0].split(':')[-1] if rating else None
 
-    return sorted(products_data, key=lambda x: convert_price_to_float(x['Price']))
+      products_data.append({
+        "Name": title,
+        "Price": price,
+        "Number Of Reviews": no_of_reviews,
+        "Discount": discount,
+        "Rating": product_rating
+      })
 
-search_query = input('Enter product to search on Amazon: ')
-products = get_amazon_products(search_query)
+      print(f"Product Name: {title}")
+      print(f"Price: {price}")
+      print(f"Number of Reviews: {no_of_reviews}")
+      print(f"Discount: {discount}")
+      print(f"Rating: {product_rating}")
+      print("-" * 50)
 
-# Displaying product data using a bar chart
-if products:  # Check if products list is not empty
-    product_names = [product['Product'][:30] if len(product['Product']) > 30 else product['Product'] for product in products]
-    product_prices = [convert_price_to_float(product['Price']) for product in products]
+  else:
+    print("Failed to retrieve products.")
+  return products_data
 
-    plt.figure(figsize=(10, 6))
-    plt.barh(range(len(product_prices)), product_prices, color='skyblue')
-    plt.xlabel('Price')
-    plt.ylabel('Product')
-    plt.title(f'Products and their Prices on Amazon for {search_query.capitalize()} (Ascending Order)')
-    plt.yticks(range(len(product_prices)), product_names)  # Setting y-axis labels as shortened product names
-    plt.tight_layout()
-    plt.show()
-else:
-    print('No products found.')
+search_query = input("Enter your search query: ")
+products_data = get_snapdeal_products(search_query)
+
+def visualize_product_data(products):
+    if products:
+        # Preparing data for plotting
+        #product_names = [product['Product'][:25] + '...' if len(product['Product']) > 25 else product['Product'] for product in products]
+        product_names = [product['Product'] for product in products]
+        product_prices = [product['Price'] for product in products]
+
+        # Creating the bar chart
+        plt.figure(figsize=(12, 8))
+        bars = plt.barh(product_names, product_prices, color='skyblue')  # Horizontal bar chart
+
+        plt.xlabel('Price in INR')  # Label for x-axis
+        plt.ylabel('Product')  # Label for y-axis
+        plt.title(f'Prices of Products on Snapdeal')
+        plt.tight_layout()
+        # Displaying the plot
+        plt.show()
+    else:
+        print('No products to display.')
+visualize_product_data(products)
+
+
 
 ```
 
 ### Output:
+<img width="1050" height="400" alt="image" src="https://github.com/user-attachments/assets/50ed31ab-e37e-4e75-9a31-10dbc5c9c7ef" />
+<img width="1065" height="407" alt="image" src="https://github.com/user-attachments/assets/2a36134d-1f49-4b6d-991a-3cdd2998d543" />
+<img width="1072" height="375" alt="image" src="https://github.com/user-attachments/assets/3d17fc4c-b103-49b9-a1b9-be3c07ae04ae" />
+<img width="1072" height="408" alt="image" src="https://github.com/user-attachments/assets/36e849a6-55c0-4801-a390-ffa12d1235ad" />
+<img width="1212" height="428" alt="image" src="https://github.com/user-attachments/assets/1c4903a2-27a2-4dfb-962d-14d55e7c461b" />
+<img width="1210" height="413" alt="image" src="https://github.com/user-attachments/assets/672d404a-1009-4583-9fa0-b8784ec9e89d" />
+
+
+
+
+
 
 ### Result:
+Thus, We had Successfully implemented the Web Scraping on Amazon using (beautifulsoup) Python.
+
+
